@@ -8,7 +8,7 @@ import Cell from './cell';
 import SelectionCell from './row-selection/selection-cell';
 import ExpandCell from './row-expand/expand-cell';
 import eventDelegater from './row-event-delegater';
-import Const from './const';
+import SelectionContext from './contexts/selection-context';
 
 class Row extends eventDelegater(Component) {
   render() {
@@ -22,7 +22,7 @@ class Row extends eventDelegater(Component) {
       attrs,
       cellEdit,
       selected,
-      selectRow,
+      displaySelectionColumn,
       expanded,
       expandRow,
       selectable,
@@ -41,7 +41,6 @@ class Row extends eventDelegater(Component) {
     } = cellEdit;
 
     const key = _.get(row, keyField);
-    const { hideSelectColumn } = selectRow;
     const { showExpandColumn } = expandRow || {};
     const trAttrs = this.delegate(attrs);
 
@@ -58,15 +57,22 @@ class Row extends eventDelegater(Component) {
           ) : null
         }
         {
-          (selectRow.mode !== Const.ROW_SELECT_DISABLED && !hideSelectColumn)
+          displaySelectionColumn
             ? (
-              <SelectionCell
-                { ...selectRow }
-                rowKey={ key }
-                rowIndex={ rowIndex }
-                selected={ selected }
-                disabled={ !selectable }
-              />
+              <SelectionContext.Consumer>
+                {
+                  selectionProps => (
+                    <SelectionCell
+                      rowKey={ key }
+                      rowIndex={ rowIndex }
+                      selected={ selected }
+                      disabled={ !selectable }
+                      mode
+                      
+                    />
+                  )
+                }
+              </SelectionContext.Consumer>
             )
             : null
         }

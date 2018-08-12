@@ -9,7 +9,7 @@ import Caption from './caption';
 import Body from './body';
 import PropsBaseResolver from './props-resolver';
 import Const from './const';
-import { getSelectionSummary } from './store/selection';
+import SelectionResolver from './row-selection/selection-resolver';
 
 class BootstrapTable extends PropsBaseResolver(Component) {
   constructor(props) {
@@ -32,14 +32,24 @@ class BootstrapTable extends PropsBaseResolver(Component) {
       const LoadingOverlay = overlay(loading);
       return (
         <LoadingOverlay>
-          { this.renderTable() }
+          { this.renderWithPropResolver() }
         </LoadingOverlay>
       );
     }
-    return this.renderTable();
+    return this.renderWithPropResolver();
   }
 
-  renderTable() {
+  renderWithPropResolver() {
+    return (
+      <SelectionResolver selectRow={ this.props.selectRow }>
+        {
+          selectRow => this.renderTable({ ...this.props, selectRow })
+        }
+      </SelectionResolver>
+    );
+  }
+
+  renderTable(props) {
     const {
       data,
       columns,
@@ -56,8 +66,8 @@ class BootstrapTable extends PropsBaseResolver(Component) {
       rowClasses,
       wrapperClasses,
       rowEvents,
-      selected
-    } = this.props;
+      selectRow
+    } = props;
 
     const tableWrapperClass = cs('react-bootstrap-table', wrapperClasses);
 
@@ -68,18 +78,6 @@ class BootstrapTable extends PropsBaseResolver(Component) {
       'table-condensed': condensed
     }, classes);
 
-    const cellSelectionInfo = this.resolveSelectRowProps({
-      onRowSelect: this.props.onRowSelect
-    });
-
-    const { allRowsSelected, allRowsNotSelected } = getSelectionSummary(data, keyField, selected);
-    const headerCellSelectionInfo = this.resolveSelectRowPropsForHeader({
-      onAllRowsSelect: this.props.onAllRowsSelect,
-      selected,
-      allRowsSelected,
-      allRowsNotSelected
-    });
-
     const tableCaption = (caption && <Caption>{ caption }</Caption>);
     const expandRow = this.resolveExpandRowProps();
 
@@ -89,13 +87,13 @@ class BootstrapTable extends PropsBaseResolver(Component) {
           { tableCaption }
           <Header
             columns={ columns }
-            className={ this.props.headerClasses }
-            sortField={ this.props.sortField }
-            sortOrder={ this.props.sortOrder }
-            onSort={ this.props.onSort }
-            onFilter={ this.props.onFilter }
-            onExternalFilter={ this.props.onExternalFilter }
-            selectRow={ headerCellSelectionInfo }
+            className={ props.headerClasses }
+            sortField={ props.sortField }
+            sortOrder={ props.sortOrder }
+            onSort={ props.onSort }
+            onFilter={ props.onFilter }
+            onExternalFilter={ props.onExternalFilter }
+            selectRow={ selectRow }
             expandRow={ expandRow }
           />
           <Body
@@ -106,8 +104,7 @@ class BootstrapTable extends PropsBaseResolver(Component) {
             visibleColumnSize={ this.visibleColumnSize() }
             noDataIndication={ noDataIndication }
             cellEdit={ this.props.cellEdit || {} }
-            selectRow={ cellSelectionInfo }
-            selectedRowKeys={ selected }
+            selectRow={ selectRow }
             expandRow={ expandRow }
             rowStyle={ rowStyle }
             rowClasses={ rowClasses }
@@ -156,8 +153,6 @@ BootstrapTable.propTypes = {
     selectionRenderer: PropTypes.func,
     selectionHeaderRenderer: PropTypes.func
   }),
-  onRowSelect: PropTypes.func,
-  onAllRowsSelect: PropTypes.func,
   expandRow: PropTypes.shape({
     renderer: PropTypes.func.isRequired,
     expanded: PropTypes.array,

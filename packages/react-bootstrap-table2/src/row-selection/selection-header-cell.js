@@ -63,6 +63,7 @@ export default class SelectionHeaderCell extends Component {
     } = Const;
 
     const { mode, checkedStatus, selectionHeaderRenderer } = this.props;
+    console.log(checkedStatus);
 
     const checked = checkedStatus === CHECKBOX_STATUS_CHECKED;
 

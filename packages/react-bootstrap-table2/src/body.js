@@ -21,7 +21,6 @@ const Body = (props) => {
     visibleColumnSize,
     cellEdit,
     selectRow,
-    selectedRowKeys,
     rowStyle,
     rowClasses,
     rowEvents,
@@ -43,13 +42,13 @@ const Body = (props) => {
     content = <RowSection content={ indication } colSpan={ visibleColumnSize } />;
   } else {
     const nonEditableRows = cellEdit.nonEditableRows || [];
+    const selectRowEnabled = selectRow.mode !== Const.ROW_SELECT_DISABLED;
+    const displaySelectionColumn = selectRowEnabled && !selectRow.hideSelectColumn;
+
     content = data.map((row, index) => {
       const key = _.get(row, keyField);
       const editable = !(nonEditableRows.length > 0 && nonEditableRows.indexOf(key) > -1);
-
-      const selected = selectRow.mode !== Const.ROW_SELECT_DISABLED
-        ? selectedRowKeys.includes(key)
-        : null;
+      const selected = selectRowEnabled ? selectRow.selected.includes(key) : false;
 
       const attrs = rowEvents || {};
       let style = _.isFunction(rowStyle) ? rowStyle(row, index) : rowStyle;
@@ -92,7 +91,7 @@ const Body = (props) => {
           expandable={ expandable }
           selected={ selected }
           expanded={ expanded }
-          selectRow={ selectRow }
+          displaySelectionColumn={ displaySelectionColumn }
           expandRow={ expandRow }
           style={ style }
           className={ classes }
@@ -124,8 +123,7 @@ Body.propTypes = {
   keyField: PropTypes.string.isRequired,
   data: PropTypes.array.isRequired,
   columns: PropTypes.array.isRequired,
-  selectRow: PropTypes.object,
-  selectedRowKeys: PropTypes.array
+  selectRow: PropTypes.object
 };
 
 export default Body;
